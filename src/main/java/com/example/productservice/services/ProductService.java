@@ -1,16 +1,18 @@
 package com.example.productservice.services;
 
 import com.example.productservice.dtos.ProductDto;
-import org.springframework.web.bind.annotation.*;
+import com.example.productservice.models.Product;
+
+import java.util.List;
 
 public interface ProductService {
-    String getAllProducts();
+    List<Product> getAllProducts();
 
-    String getSingleProduct(Long productId);
+    Product getSingleProduct(Long productId);
 
-    String addNewProduct(ProductDto productDto);
+    Product addNewProduct(ProductDto productDto);
 
-    String updateProduct(Long productId);
+    Product updateProduct(Long productId, Product product);
 
-    String deleteProduct(Long productId);
+    Boolean deleteProduct(Long productId);
 }

@@ -1,8 +1,15 @@
 package com.example.productservice.controllers;
 
 import com.example.productservice.dtos.ProductDto;
+import com.example.productservice.models.Product;
 import com.example.productservice.services.ProductService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/products")
@@ -14,18 +21,32 @@ public class ProductController {
         this.productService = productService;
     }
     @GetMapping()
-    public String getAllProducts() {
-        return "Getting All Products";
+    public List<Product> getAllProducts() {
+        return productService.getAllProducts();
     }
 
     @GetMapping("/{productId}")
-    public String getSingleProduct(@PathVariable("productId") Long productId) {
-        return "Returning Single Product with id: " + productId;
+    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId) {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+
+        headers.add("auth-token", "noaccess4uheyhey");
+        ResponseEntity<Product> response = new ResponseEntity<>(
+                productService.getSingleProduct(productId),
+                headers,
+                HttpStatus.OK
+        );
+        return response;
     }
 
     @PostMapping()
-    public String addNewProduct(@RequestBody ProductDto productDto) {
-        return "Adding new product " + productDto;
+    public ResponseEntity<Product> addNewProduct(@RequestBody ProductDto productDto) {
+        Product newProduct = productService.addNewProduct(
+                productDto
+        );
+
+        ResponseEntity<Product> response = new ResponseEntity<>(newProduct, HttpStatus.OK);
+
+        return response;
     }
 
     @PutMapping("/{productId}")
