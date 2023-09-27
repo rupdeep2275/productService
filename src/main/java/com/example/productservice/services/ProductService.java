@@ -2,17 +2,19 @@ package com.example.productservice.services;
 
 import com.example.productservice.dtos.ProductDto;
 import com.example.productservice.models.Product;
-
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductService {
-    List<Product> getAllProducts();
+    Optional<List<Product>> getAllProducts();
 
-    Product getSingleProduct(Long productId);
+    Optional<Product> getSingleProduct(Long productId);
 
-    Product addNewProduct(ProductDto productDto);
+    Optional<Product> addNewProduct(ProductDto productDto);
 
-    Product updateProduct(Long productId, Product product);
+    Optional<Product> updateProduct(Long productId, Product product);
 
-    Boolean deleteProduct(Long productId);
+    Optional<Product> replaceProduct(Long productId, Product product);
+
+    Optional<Product> deleteProduct(Long productId);
 }

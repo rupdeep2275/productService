@@ -1,8 +1,10 @@
 package com.example.productservice.controllers;
 
 import com.example.productservice.dtos.ProductDto;
+import com.example.productservice.exceptions.NotFoundException;
 import com.example.productservice.models.Product;
 import com.example.productservice.services.ProductService;
+import com.example.productservice.utils.Convert;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -10,6 +12,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/products")
@@ -21,17 +24,23 @@ public class ProductController {
         this.productService = productService;
     }
     @GetMapping()
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public List<Product> getAllProducts() throws NotFoundException {
+        if (productService.getAllProducts().isEmpty()) {
+            throw new NotFoundException("No products found");
+        }
+        return productService.getAllProducts().get();
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId) {
+    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId) throws NotFoundException{
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-
         headers.add("auth-token", "noaccess4uheyhey");
+        Optional<Product> productOptional = productService.getSingleProduct(productId);
+        if(productOptional.isEmpty()){
+            throw new NotFoundException("Product with id " + productId + " not found");
+        }
         ResponseEntity<Product> response = new ResponseEntity<>(
-                productService.getSingleProduct(productId),
+                productOptional.get(),
                 headers,
                 HttpStatus.OK
         );
@@ -39,23 +48,43 @@ public class ProductController {
     }
 
     @PostMapping()
-    public ResponseEntity<Product> addNewProduct(@RequestBody ProductDto productDto) {
-        Product newProduct = productService.addNewProduct(
+    public ResponseEntity<Product> addNewProduct(@RequestBody ProductDto productDto) throws NotFoundException{
+        Optional<Product> productOptional = productService.addNewProduct(
                 productDto
         );
-
-        ResponseEntity<Product> response = new ResponseEntity<>(newProduct, HttpStatus.OK);
-
+        if(productOptional.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        ResponseEntity<Product> response = new ResponseEntity<>(productOptional.get(), HttpStatus.OK);
         return response;
     }
 
-    @PutMapping("/{productId}")
-    public String updateProduct(@PathVariable("productId") Long productId, @RequestBody ProductDto productDto) {
-        return "Updating product with id: " + productId + " with " + productDto;
+    @PatchMapping("/{productId}")
+    public Product updateProduct(@PathVariable("productId") Long productId, @RequestBody ProductDto productDto) throws NotFoundException {
+        Product product = Convert.ProductDtoToProduct(productDto);
+        Optional<Product> productOptional = productService.updateProduct(productId, product);
+        if (productOptional.isEmpty()) {
+            throw new NotFoundException("Product with id " + productId + " not found");
+        }
+        return productOptional.get();
     }
 
-    @DeleteMapping("/{productId}")
-    public String deleteProduct(@PathVariable("productId") Long productId) {
-        return "Deleting a product with id: " + productId;
+    @PutMapping("/{productId}")
+    public Product replaceProduct(@PathVariable("productId") Long productId, @RequestBody ProductDto productDto) throws NotFoundException {
+        Product product = Convert.ProductDtoToProduct(productDto);
+        Optional<Product> productOptional = productService.replaceProduct(productId, product);
+        if (productOptional.isEmpty()) {
+            throw new NotFoundException("Product with id " + productId + " not found");
+        }
+        return productOptional.get();
+    }
+
+    @DeleteMapping("/{productId}") //todo - needs modification
+    public Product deleteProduct(@PathVariable("productId") Long productId) throws NotFoundException {
+        Optional<Product> productOptional = productService.deleteProduct(productId);
+        if (productOptional.isEmpty()) {
+            throw new NotFoundException("Product with id " + productId + " not found");
+        }
+        return productOptional.get();
     }
 }
