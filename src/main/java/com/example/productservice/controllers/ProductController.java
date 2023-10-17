@@ -3,6 +3,7 @@ package com.example.productservice.controllers;
 import com.example.productservice.dtos.ProductDto;
 import com.example.productservice.exceptions.NotFoundException;
 import com.example.productservice.models.Product;
+import com.example.productservice.repositories.ProductRepository;
 import com.example.productservice.services.ProductService;
 import com.example.productservice.utils.Convert;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,11 @@ public class ProductController {
 
     private ProductService productService;
 
-    public ProductController(ProductService productService) {
+    private ProductRepository productRepository;
+
+    public ProductController(ProductService productService, ProductRepository productRepository) {
         this.productService = productService;
+        this.productRepository = productRepository;
     }
     @GetMapping()
     public List<Product> getAllProducts() throws NotFoundException {
@@ -49,13 +53,13 @@ public class ProductController {
 
     @PostMapping()
     public ResponseEntity<Product> addNewProduct(@RequestBody ProductDto productDto) throws NotFoundException{
-        Optional<Product> productOptional = productService.addNewProduct(
-                productDto
-        );
+        Optional<Product> productOptional = productService.addNewProduct(productDto);
         if(productOptional.isEmpty()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
         ResponseEntity<Product> response = new ResponseEntity<>(productOptional.get(), HttpStatus.OK);
+
         return response;
     }
 
@@ -79,7 +83,7 @@ public class ProductController {
         return productOptional.get();
     }
 
-    @DeleteMapping("/{productId}") //todo - needs modification
+    @DeleteMapping("/{productId}")
     public Product deleteProduct(@PathVariable("productId") Long productId) throws NotFoundException {
         Optional<Product> productOptional = productService.deleteProduct(productId);
         if (productOptional.isEmpty()) {

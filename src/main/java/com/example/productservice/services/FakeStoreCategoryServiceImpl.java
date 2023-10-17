@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Service
 public class FakeStoreCategoryServiceImpl implements CategoryService{
 
     private FakeStoreClient fakeStoreClient;
@@ -31,6 +30,11 @@ public class FakeStoreCategoryServiceImpl implements CategoryService{
             answer.add(category);
         }
         return Optional.of(answer);
+    }
+
+    @Override
+    public Optional<Category> addNewCategory(Category category) {
+        return Optional.empty();
     }
 
     @Override
