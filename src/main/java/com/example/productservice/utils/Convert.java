@@ -35,11 +35,22 @@ public class Convert {
 //        product.setId(productDto.getId());
         product.setTitle(productDto.getTitle());
         product.setPrice(productDto.getPrice());
-//        Category category = new Category();
-//        category.setName(productDto.getCategory());
-//        product.setCategory(category);
+        Category category = new Category();
+        category.setName(productDto.getCategory());
+        product.setCategory(category);
         product.setImageUrl(productDto.getImage());
         product.setDescription(productDto.getDescription());
         return product;
+    }
+
+    public static ProductDto ProductToProductDto(Product product) {
+        ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
+        productDto.setTitle(product.getTitle());
+        productDto.setPrice(product.getPrice());
+        productDto.setCategory(product.getCategory().getName());
+        productDto.setImage(product.getImageUrl());
+        productDto.setDescription(product.getDescription());
+        return productDto;
     }
 }

@@ -2,13 +2,15 @@ package com.example.productservice.services;
 
 import com.example.productservice.clients.fakestoreapi.FakeStoreClient;
 import com.example.productservice.clients.fakestoreapi.FakeStoreProductDto;
-import com.example.productservice.dtos.ProductDto;
 import com.example.productservice.models.Product;
 import com.example.productservice.utils.Convert;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+@Service
 public class FakeStoreProductServiceImpl implements ProductService{
 
     private FakeStoreClient fakeStoreClient;
@@ -40,8 +42,8 @@ public class FakeStoreProductServiceImpl implements ProductService{
     }
 
     @Override
-    public Optional<Product> addNewProduct(ProductDto productDto){
-        FakeStoreProductDto productDto1 = fakeStoreClient.addNewProduct(productDto);
+    public Optional<Product> addNewProduct(Product product){
+        FakeStoreProductDto productDto1 = fakeStoreClient.addNewProduct(Convert.ProductToProductDto(product));
         if(productDto1 == null) {
             return Optional.empty();
         }

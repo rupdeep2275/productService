@@ -1,7 +1,6 @@
 package com.example.productservice.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +12,8 @@ public class Product extends BaseModel{
     private double price;
     private String description;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST},fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id",referencedColumnName = "id")
     private Category category;
     private String imageUrl;
 }

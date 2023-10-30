@@ -26,14 +26,6 @@ public class SelfCategoryService implements CategoryService{
         return Optional.of(categories);
     }
 
-    public Optional<Category> addNewCategory(Category category) {
-        Category category1 = categoryRepository.save(category);
-        if(category1 == null) {
-            return Optional.empty();
-        }
-        return Optional.of(category1);
-    }
-
     @Override
     public Optional<List<Product>> getProductsInCategory(String categoryName) {
         List<Product> products = productRepository.findByCategoryName(categoryName);

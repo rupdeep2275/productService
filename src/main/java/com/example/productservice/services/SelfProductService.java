@@ -1,9 +1,9 @@
 package com.example.productservice.services;
 
-import com.example.productservice.dtos.ProductDto;
+import com.example.productservice.models.Category;
 import com.example.productservice.models.Product;
+import com.example.productservice.repositories.CategoryRepository;
 import com.example.productservice.repositories.ProductRepository;
-import com.example.productservice.utils.Convert;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,8 +12,11 @@ import java.util.Optional;
 public class SelfProductService implements ProductService{
     private ProductRepository productRepository;
 
-    public SelfProductService(ProductRepository productRepository) {
+    private CategoryRepository categoryRepository;
+
+    public SelfProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
     @Override
     public Optional<List<Product>> getAllProducts() {
@@ -34,11 +37,12 @@ public class SelfProductService implements ProductService{
     }
 
     @Override
-    public Optional<Product> addNewProduct(ProductDto productDto) {
-        Product product = productRepository.save(Convert.ProductDtoToProduct(productDto));
-        if(product == null) {
-            return Optional.empty();
+    public Optional<Product> addNewProduct(Product newProduct) {
+        Category category = categoryRepository.findCategoryByName(newProduct.getCategory().getName());
+        if(category != null){
+            newProduct.setCategory(category);
         }
+        Product product = productRepository.save(newProduct);
         return Optional.of(product);
     }
 
@@ -47,6 +51,13 @@ public class SelfProductService implements ProductService{
         Product prod = productRepository.findById(productId).orElse(null);
         if(prod == null) {
             return Optional.empty();
+        }
+        if(product.getCategory() != null){
+            Category dbCategory = categoryRepository.findCategoryByName(product.getCategory().getName());
+            if (dbCategory == null) {
+                dbCategory = categoryRepository.save(product.getCategory());
+            }
+            prod.setCategory(dbCategory);
         }
         if(product.getTitle() != null) {
             prod.setTitle(product.getTitle());
@@ -70,6 +81,11 @@ public class SelfProductService implements ProductService{
         if(prod == null) {
             return Optional.empty();
         }
+        Category dbCategory = categoryRepository.findCategoryByName(product.getCategory().getName());
+        if (dbCategory == null) {
+            dbCategory = categoryRepository.save(product.getCategory());
+        }
+        prod.setCategory(dbCategory);
         prod.setTitle(product.getTitle());
         prod.setPrice(product.getPrice());
         prod.setDescription(product.getDescription());

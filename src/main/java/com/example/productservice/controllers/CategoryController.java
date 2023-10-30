@@ -5,10 +5,11 @@ import com.example.productservice.exceptions.NotFoundException;
 import com.example.productservice.models.Category;
 import com.example.productservice.models.Product;
 import com.example.productservice.services.CategoryService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.example.productservice.utils.Convert;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,34 +19,31 @@ public class CategoryController {
 
     private CategoryService categoryService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(@Qualifier(value = "selfCategoryService") CategoryService categoryService) {
         this.categoryService = categoryService;
     }
     @GetMapping()
-    public List<Category> getAllCategories() throws NotFoundException {
+    public List<String> getAllCategories() throws NotFoundException {
         if (categoryService.getAllCategories().isEmpty()) {
             throw new NotFoundException("No categories found");
         }
-        return categoryService.getAllCategories().get();
-    }
-
-    @PostMapping()
-    public ResponseEntity<Category> addNewProduct(@RequestBody Category category) throws NotFoundException{
-        Optional<Category> categoryOptional = categoryService.addNewCategory(category);
-        if(categoryOptional.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        List<String> list = new ArrayList<>();
+        for (Category category : categoryService.getAllCategories().get()) {
+            list.add(category.getName());
         }
-
-        ResponseEntity<Category> response = new ResponseEntity<>(categoryOptional.get(), HttpStatus.OK);
-
-        return response;
+        return list;
     }
 
     @GetMapping("/{categoryName}")
-    public List<Product> getProductsInCategory(@PathVariable("categoryName") String categoryName) throws NotFoundException {
-        if (categoryService.getProductsInCategory(categoryName).isEmpty()) {
+    public List<ProductDto> getProductsInCategory(@PathVariable("categoryName") String categoryName) throws NotFoundException {
+        Optional<List<Product>> optionalList = categoryService.getProductsInCategory(categoryName);
+        if (optionalList.isEmpty()) {
             throw new NotFoundException("No products found in category " + categoryName);
         }
-        return categoryService.getProductsInCategory(categoryName).get();
+        List<ProductDto> list = new ArrayList<>();
+        for (Product product : optionalList.get()) {
+            list.add(Convert.ProductToProductDto(product));
+        }
+        return list;
     }
 }

@@ -6,12 +6,14 @@ import com.example.productservice.models.Product;
 import com.example.productservice.repositories.ProductRepository;
 import com.example.productservice.services.ProductService;
 import com.example.productservice.utils.Convert;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,28 +25,33 @@ public class ProductController {
 
     private ProductRepository productRepository;
 
-    public ProductController(ProductService productService, ProductRepository productRepository) {
+    public ProductController(@Qualifier(value = "selfProductService") ProductService productService, ProductRepository productRepository) {
         this.productService = productService;
         this.productRepository = productRepository;
     }
     @GetMapping()
-    public List<Product> getAllProducts() throws NotFoundException {
+    public List<ProductDto> getAllProducts() throws NotFoundException {
         if (productService.getAllProducts().isEmpty()) {
             throw new NotFoundException("No products found");
         }
-        return productService.getAllProducts().get();
+        List<ProductDto> list = new ArrayList<>();
+        for(Product product: productService.getAllProducts().get()){
+            list.add(Convert.ProductToProductDto(product));
+        }
+        return list;
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId) throws NotFoundException{
+    public ResponseEntity<ProductDto> getSingleProduct(@PathVariable("productId") Long productId) throws NotFoundException{
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("auth-token", "noaccess4uheyhey");
         Optional<Product> productOptional = productService.getSingleProduct(productId);
         if(productOptional.isEmpty()){
             throw new NotFoundException("Product with id " + productId + " not found");
         }
-        ResponseEntity<Product> response = new ResponseEntity<>(
-                productOptional.get(),
+        Product product = productOptional.get();
+        ResponseEntity<ProductDto> response = new ResponseEntity<>(
+                Convert.ProductToProductDto(product),
                 headers,
                 HttpStatus.OK
         );
@@ -52,43 +59,43 @@ public class ProductController {
     }
 
     @PostMapping()
-    public ResponseEntity<Product> addNewProduct(@RequestBody ProductDto productDto) throws NotFoundException{
-        Optional<Product> productOptional = productService.addNewProduct(productDto);
+    public ResponseEntity<ProductDto> addNewProduct(@RequestBody ProductDto productDto) throws NotFoundException{
+        Optional<Product> productOptional = productService.addNewProduct(Convert.ProductDtoToProduct(productDto));
         if(productOptional.isEmpty()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        ResponseEntity<Product> response = new ResponseEntity<>(productOptional.get(), HttpStatus.OK);
+        Product product = productOptional.get();
+        ResponseEntity<ProductDto> response = new ResponseEntity<>(Convert.ProductToProductDto(product), HttpStatus.OK);
 
         return response;
     }
 
     @PatchMapping("/{productId}")
-    public Product updateProduct(@PathVariable("productId") Long productId, @RequestBody ProductDto productDto) throws NotFoundException {
+    public ProductDto updateProduct(@PathVariable("productId") Long productId, @RequestBody ProductDto productDto) throws NotFoundException {
         Product product = Convert.ProductDtoToProduct(productDto);
         Optional<Product> productOptional = productService.updateProduct(productId, product);
         if (productOptional.isEmpty()) {
             throw new NotFoundException("Product with id " + productId + " not found");
         }
-        return productOptional.get();
+        return Convert.ProductToProductDto(productOptional.get());
     }
 
     @PutMapping("/{productId}")
-    public Product replaceProduct(@PathVariable("productId") Long productId, @RequestBody ProductDto productDto) throws NotFoundException {
+    public ProductDto replaceProduct(@PathVariable("productId") Long productId, @RequestBody ProductDto productDto) throws NotFoundException {
         Product product = Convert.ProductDtoToProduct(productDto);
         Optional<Product> productOptional = productService.replaceProduct(productId, product);
         if (productOptional.isEmpty()) {
             throw new NotFoundException("Product with id " + productId + " not found");
         }
-        return productOptional.get();
+        return Convert.ProductToProductDto(productOptional.get());
     }
 
     @DeleteMapping("/{productId}")
-    public Product deleteProduct(@PathVariable("productId") Long productId) throws NotFoundException {
+    public ProductDto deleteProduct(@PathVariable("productId") Long productId) throws NotFoundException {
         Optional<Product> productOptional = productService.deleteProduct(productId);
         if (productOptional.isEmpty()) {
             throw new NotFoundException("Product with id " + productId + " not found");
         }
-        return productOptional.get();
+        return Convert.ProductToProductDto(productOptional.get());
     }
 }
