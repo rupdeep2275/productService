@@ -1,11 +1,16 @@
 package com.example.productservice.controllers;
 
+import com.example.productservice.clients.authenticationclient.AuthClient;
+import com.example.productservice.clients.authenticationclient.dtos.Role;
+import com.example.productservice.clients.authenticationclient.dtos.SessionStatus;
+import com.example.productservice.clients.authenticationclient.dtos.ValidateTokenResponseDTO;
 import com.example.productservice.dtos.ProductDto;
 import com.example.productservice.exceptions.NotFoundException;
 import com.example.productservice.models.Product;
 import com.example.productservice.repositories.ProductRepository;
 import com.example.productservice.services.ProductService;
 import com.example.productservice.utils.Convert;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,15 +27,38 @@ import java.util.Optional;
 public class ProductController {
 
     private ProductService productService;
-
     private ProductRepository productRepository;
+    private AuthClient authClient;
 
-    public ProductController(@Qualifier(value = "selfProductService") ProductService productService, ProductRepository productRepository) {
+    public ProductController(@Qualifier(value = "selfProductService") ProductService productService, ProductRepository productRepository, AuthClient authClient) {
         this.productService = productService;
         this.productRepository = productRepository;
+        this.authClient = authClient;
     }
     @GetMapping()
-    public List<ProductDto> getAllProducts() throws NotFoundException {
+    public ResponseEntity<List<ProductDto>> getAllProducts(@Nullable @RequestHeader("AUTH_TOKEN") String token,
+                                                           @Nullable @RequestHeader("USER_ID") String userId) throws NotFoundException {
+//        //check if token exists
+//        if (token == null || token.isEmpty() || userId == null || userId.isEmpty()) {
+//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+//        }
+//        ValidateTokenResponseDTO response = authClient.validate(token, Long.parseLong(userId));
+//        //check if token is valid
+//        if (response.getSessionStatus().equals(SessionStatus.INVALID)) {
+//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+//        }
+//        //check if user has permissions
+//        boolean isUserAdmin = false;
+//        for (Role role : response.getUserDTO().getRoles()) {
+//            if (role.getName().equals("ADMIN")) {
+//                isUserAdmin = true;
+//                break;
+//            }
+//        }
+//        if (!isUserAdmin) {
+//            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+//        }
+
         if (productService.getAllProducts().isEmpty()) {
             throw new NotFoundException("No products found");
         }
@@ -38,7 +66,7 @@ public class ProductController {
         for(Product product: productService.getAllProducts().get()){
             list.add(Convert.ProductToProductDto(product));
         }
-        return list;
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
     @GetMapping("/{productId}")
