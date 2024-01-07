@@ -4,19 +4,25 @@ import com.example.productservice.clients.fakestoreapi.FakeStoreClient;
 import com.example.productservice.clients.fakestoreapi.FakeStoreProductDto;
 import com.example.productservice.models.Product;
 import com.example.productservice.utils.Convert;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class FakeStoreProductServiceImpl implements ProductService{
 
-    private FakeStoreClient fakeStoreClient;
+    private final FakeStoreClient fakeStoreClient;
+//    private Map<Long, FakeStoreProductDto> fakeStoreProducts = new HashMap<>();
 
-    public FakeStoreProductServiceImpl(FakeStoreClient fakeStoreClient) {
-        this.fakeStoreClient = fakeStoreClient;
+    private final RedisTemplate<Long, Object> redisTemplate;
+
+    @Override
+    public Page<Product> getProducts(int numberOfProducts, int offset) {
+        return null;
     }
 
     @Override
@@ -34,7 +40,16 @@ public class FakeStoreProductServiceImpl implements ProductService{
 
     @Override
     public Optional<Product> getSingleProduct(Long productId) {
+//        if(fakeStoreProducts.containsKey(productId)) {
+//            return Optional.of(Convert.FakeStoreProductDtoToProduct(fakeStoreProducts.get(productId)));
+//        }
+        FakeStoreProductDto redisProductDto = (FakeStoreProductDto) redisTemplate.opsForHash().get(productId, "PRODUCTS");
+        if(redisProductDto != null) {
+            return Optional.of(Convert.FakeStoreProductDtoToProduct(redisProductDto));
+        }
         FakeStoreProductDto productDto = fakeStoreClient.getSingleProduct(productId);
+//        fakeStoreProducts.put(productId, productDto);
+        redisTemplate.opsForHash().put(productId, "PRODUCTS", productDto);
         if(productDto == null) {
             return Optional.empty();
         }

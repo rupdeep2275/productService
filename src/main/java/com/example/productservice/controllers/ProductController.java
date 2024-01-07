@@ -1,17 +1,15 @@
 package com.example.productservice.controllers;
 
 import com.example.productservice.clients.authenticationclient.AuthClient;
-import com.example.productservice.clients.authenticationclient.dtos.Role;
-import com.example.productservice.clients.authenticationclient.dtos.SessionStatus;
-import com.example.productservice.clients.authenticationclient.dtos.ValidateTokenResponseDTO;
+import com.example.productservice.dtos.GetProductsRequestDTO;
 import com.example.productservice.dtos.ProductDto;
 import com.example.productservice.exceptions.NotFoundException;
 import com.example.productservice.models.Product;
 import com.example.productservice.repositories.ProductRepository;
 import com.example.productservice.services.ProductService;
 import com.example.productservice.utils.Convert;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -29,15 +27,26 @@ public class ProductController {
     private ProductService productService;
     private ProductRepository productRepository;
     private AuthClient authClient;
-
+    //@Qualifier(value = "selfProductService")
+    //@Qualifier(value = "fakeStoreProductServiceImpl")
     public ProductController(@Qualifier(value = "selfProductService") ProductService productService, ProductRepository productRepository, AuthClient authClient) {
         this.productService = productService;
         this.productRepository = productRepository;
         this.authClient = authClient;
     }
+
+//    @GetMapping("/paginated")
+//    public ResponseEntity<Page<Product>> getProducts(@RequestBody GetProductsRequestDTO requestDTO) {
+//        return ResponseEntity.of(Optional.ofNullable(productService.getProducts(requestDTO.getNumberOfProducts(), requestDTO.getOffset())));
+//    }
+@GetMapping("/paginated")
+public ResponseEntity<Page<Product>> getProducts(@RequestParam int numberOfProducts, @RequestParam int offset) {
+    return ResponseEntity.of(Optional.ofNullable(productService.getProducts(numberOfProducts, offset)));
+}
+
+    //Make only admins be able to fetch all products
     @GetMapping()
-    public ResponseEntity<List<ProductDto>> getAllProducts(@Nullable @RequestHeader("AUTH_TOKEN") String token,
-                                                           @Nullable @RequestHeader("USER_ID") String userId) throws NotFoundException {
+    public ResponseEntity<List<ProductDto>> getAllProducts() throws NotFoundException {
 //        //check if token exists
 //        if (token == null || token.isEmpty() || userId == null || userId.isEmpty()) {
 //            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -127,3 +136,5 @@ public class ProductController {
         return Convert.ProductToProductDto(productOptional.get());
     }
 }
+
+//for testing caching(redis) make FakeStoreProductServiceImpl as primary

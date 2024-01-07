@@ -4,6 +4,8 @@ import com.example.productservice.models.Category;
 import com.example.productservice.models.Product;
 import com.example.productservice.repositories.CategoryRepository;
 import com.example.productservice.repositories.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +19,14 @@ public class SelfProductService implements ProductService{
     public SelfProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+    }
+
+    @Override
+    public Page<Product> getProducts(int numberOfProducts, int offset) {
+        Page<Product> products = productRepository.findAll(
+                PageRequest.of(offset/numberOfProducts, numberOfProducts)
+        );
+        return products;
     }
     @Override
     public Optional<List<Product>> getAllProducts() {
